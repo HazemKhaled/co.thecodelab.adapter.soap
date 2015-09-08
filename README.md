@@ -18,7 +18,7 @@ npm install alloy-sync-soap --save
 ```
 
 Add the following to your model in `PROJECT_FOLDER/app/models/foo.js`.
-
+```
 	exports.definition = {	
 		config: {
 			//"debug": 1, 
@@ -40,9 +40,9 @@ Add the following to your model in `PROJECT_FOLDER/app/models/foo.js`.
 			return Collection;
 		}		
 	}
-
+```
 Create the soap controller in Alloy.js
-
+```
 // Set SOAP global objects
 Alloy.Globals.soap = {
 	client: null,
@@ -69,15 +69,15 @@ Alloy.Globals.soap = {
 		} );
 	}
 };
-
+```
 # Changelog
 **v0.2.0**  
-init version compitable with ti-soap 0.2.0 build on Node.js soap 0.2.0, for from [REST API adapter](https://github.com/viezel/napp.alloy.adapter.restapi)
+init version compitable with ti-soap 0.2.0 build on Node.js SOAP 0.2.0, for from [REST API adapter](https://github.com/viezel/napp.alloy.adapter.restapi)
 
 ## Authors
 
 1. [Mads Møller](https://github.com/viezel) - Original adaptor that we forked from
-2. [Pier Paolo Ramon](https://github.com/yuchi) - Titaniumify the Node.js SOAP package to Titanium module
+2. [Pier Paolo Ramon](https://github.com/yuchi) - Titaniumify the Node.js [SOAP](https://www.npmjs.com/package/soap) package to Titanium module
 3. [Hazem Khaled](https://github.com/hazemkhaled) - Code into this SOAP adaptor
 4. [Ebrahim 3bmo3ty](https://github.com/e3bmo3ty) - Code into this SOAP adaptor
 
