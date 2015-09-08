@@ -1,46 +1,35 @@
-napp.alloy.adapter.restapi
+SOAP adapter for Appcelerator Titanium Alloy
 ==========================
+Finally you have full support of SOAP client into Titanium, depend on the power of [SOAP Node.js package](https://www.npmjs.com/package/soap).
 
-RestAPI Sync Adapter for Titanium Alloy Framework.
-
-### Response Codes
-
-The adapter has been designed with the following structure.
-
-* **200:** The request was successful.
-* **201:** The resource was successfully created.
-* **204:** The request was successful, but we did not send any content back.
-* **304:** The request was not modified. 
-* **400:** The request failed due to an application error, such as a validation error.
-* **401:** An API key was either not sent or invalid.
-* **403:** The resource does not belong to the authenticated user and is forbidden.
-* **404:** The resource was not found.
-* **500:** A server error occurred.
+This adaptor forked from [@Viezel Rest adapter](https://github.com/viezel/napp.alloy.adapter.restapi).
 
 ## How To Use
 
-Download [restapi.js](restapi.js) to `PROJECT_FOLDER/app/assets/alloy/sync/` or use NPM thanks to [appc-npm](https://www.npmjs.com/package/appc-npm):
+Add the [ti-soap](http://gitt.io/component/soap) commonjs module
+```
+gittio install soap
+```
+
+Download [soap.js](soap.js) to `PROJECT_FOLDER/app/assets/alloy/sync/` or use NPM thanks to [appc-npm](https://www.npmjs.com/package/appc-npm):
 
 ```
-npm install alloy-sync-restapi --save
+npm install alloy-sync-soap --save
 ```
 
-Add the following to your model in `PROJECT_FOLDER/app/models/`.
+Add the following to your model in `PROJECT_FOLDER/app/models/foo.js`.
 
 	exports.definition = {	
 		config: {
-			"URL": "http://example.com/api/modelname",
 			//"debug": 1, 
 			"adapter": {
-				"type": "restapi",
+				"type": "soap",
 				"collection_name": "MyCollection",
 				"idAttribute": "id"
 			},
-			"headers": { // your custom headers
-	            "Accept": "application/vnd.stackmob+json; version=0",
-		        "X-StackMob-API-Key": "your-stackmob-key"
-	        },
-	        "parentNode": "news.domestic" //your root node
+			"headers": {},
+	        	soapMethod: "catalogCategoryLevel",
+	        	"parentNode": "news.domestic" //your root node
 		},		
 		extendModel: function(Model) {		
 			_.extend(Model.prototype, {});
@@ -52,191 +41,46 @@ Add the following to your model in `PROJECT_FOLDER/app/models/`.
 		}		
 	}
 
-Use the `debug` property in the above example to get logs printed with server response to debug your usage of the restapi adapter.
+Create the soap controller in Alloy.js
 
-### Lets see this in action
+// Set SOAP global objects
+Alloy.Globals.soap = {
+	client: null,
+	session: null,
+	create: function( callback ) {
 
-In your Alloy controller, do would use the REST API adapter like this:
+		var SOAP = require( 'soap' );
+		SOAP.createClient( "http://example.com/wsdl.xml", function( err, client ) {
 
-```javascript
-var collection = Alloy.createCollection("MyCollection"); //or model
-//the fetch method is an async call to the remote REST API. 
-collection.fetch({ 
-	success : function(){
-		_.each(collection.models, function(element, index, list){
-			// We are looping through the returned models from the remote REST API
-			// Implement your custom logic here
-		});
-	},
-	error : function(){
-		Ti.API.error("hmm - this is not good!");
+			Alloy.Globals.soap.client = client;
+
+			Alloy.Globals.soap.client.login( {
+				apiKey: "XXXXXXXX",
+				username: "XXXXXXXXXX"
+			}, function( err, result ) {
+				if( !err ) {
+					Alloy.Globals.soap.session = result.loginReturn.$value;
+					callback( );
+				} else {
+					Ti.API.error( "[SOAP API] " + err );
+				}
+			} );
+
+		} );
 	}
-});
-```
-
-Another example is that,
-
-```javascript
-// This is the handle for the item
-var model = Alloy.createModel("MyCollection"); 
-
-var params = {
-    field1: "some field",
-    fied2: "another field"
 };
 
-//the fetch method is an async call to the remote REST API.
-model.save(params, {
-    success : function(model) {
-        Ti.API.log("Yay! Success!");
-        Ti.API.log(model);
-    },
-    error : function(err) {
-        Ti.API.error("hmm - this is not good!");
-        Ti.API.error(err);
-    }
-});
+# Changelog
+**v0.2.0**  
+init version compitable with ti-soap 0.2.0 build on Node.js soap 0.2.0, for from [REST API adapter](https://github.com/viezel/napp.alloy.adapter.restapi)
 
-```
+## Authors
 
-Under the hood, this API uses the Backbone JS sync functionality. To have a solid understading of this libary, it
-will valuable to understand how does BackboneJS manages CRUD operations.
+1. [Mads Møller](https://github.com/viezel) - Original adaptor that we forked from
+2. [Pier Paolo Ramon](https://github.com/yuchi) - Titaniumify the Node.js SOAP package to Titanium module
+3. [Hazem Khaled](https://github.com/hazemkhaled) - Code into this SOAP adaptor
+4. [Ebrahim 3bmo3ty](https://github.com/e3bmo3ty) - Code into this SOAP adaptor
 
-
-
-## Special Properties
-
-
-### Custom Headers
-
-Define your own custom headers. E.g. to add a BaaS API
-
-	"headers": {
-		"Accept": "application/vnd.stackmob+json; version=0",
-		"X-StackMob-API-Key": "your-stackmob-key"
-	}
-
-### Nested Result Objects
-
-Lets say you have a REST API where the result objects are nested. Like the Twitter search API. It has the found tweets in a results object. 
-Use the `parentNode` to specify from which root object you want to parse children objects. 
-
-
-	config: {
-		...
-		"parentNode" : "results"
-	}
-	
-It has support for nested objects. 
-	
-	config: {
-		...
-		"parentNode" : "news.domestic"
-	}
-
-Since v1.1.1 - you can specify this object as a function instead to custom parse the feed. Here is an example: 
-
-*Feed:* 
-http://www.google.com/calendar/feeds/developer-calendar@google.com/public/full?alt=json&orderby=starttime&max-results=15&singleevents=true&sortorder=ascending&futureevents=true
-
-*Custom parsing:*
-
-```javascript
-parentNode: function (data) {
-	var entries = [];
-
-	_.each(data.feed.entry, function(_entry) {
-		var entry = {};
-
-		entry.id = _entry.id.$t;
-		entry.startTime = _entry.gd$when[0].startTime;
-		entry.endTime = _entry.gd$when[0].endTime;
-		entry.title = _entry.title.$t;
-		entry.content = _entry.content.$t;
-
-		entries.push(entry);
-	});
-
-	return entries;
-}
-```
-
-### ETag
-
-This feature will only work if your server supports ETags. If you have no idea what this is, then consult your server admin.
-Start be enabling this feature in the model config, like the following:
-
-	config: {
-		...
-		"eTagEnabled" : true
-	}
-
-You do not have to do anything more. The adapter will send and recieve the ETag for every single request and store those locally in the Ti.App.Properties namespace. 
-
-The adapter uses the `IF-NONE-MATCH` header to send the newest ETag for the provided url to the server on each request. Once a succesful response is recieved by the adapter, it will store the new ETag automatically. 
-
-**Notice: This may be a good idea not to use this while developing, because it will cache and store your ETag - which might end up in wrong situations while you are working**
-
-
-## Changelog
-
-**v1.1.10**  
-Bugfix for http headers after xhr.open() but before xhr.send() 
-
-**v1.1.8**  
-Bugfix for model.id #64
-parentNode can be defined as a function #63  
-
-**v1.1.5**  
-Added ETag support  
-Bugfix for urlparams #34  
-
-
-**v1.1.4**  
-Added search mode
-
-**v1.1.3**  
-Added support for accessing the error object. Issue #29 Thanks @alexandremblah
-
-**v1.1.2**  
-JSON.parse errors are now caught. Thanks @FokkeZB
-
-**v1.1.1**  
-Added support parentNode as a function for custom parsing. thanks @FokkeZB
-
-**v1.1.0**  
-Added support for Nested Result Objects  
-Added support for Custom Headers  
-Code cleanup  
-
-**v1.0.6**  
-Added support for idAttribute
-
-**v1.0.5**  
-Added HTTP Response code and error message
-
-**v1.0.4**  
-Added debug
-
-**v1.0.3**  
-Alloy 1.0.0.  
-Fix bug in rest url being global 
-
-**v1.0.2**  
-Added urlparams
-
-**v1.0.1**  
-Android bugfixes
-
-**v1.0**  
-init
-
-## Author
-
-**Mads Møller**  
-web: http://www.napp.dk  
-email: mm@napp.dk  
-twitter: @nappdev  
 
 ## License
 
