@@ -18,7 +18,7 @@ npm install alloy-sync-soap --save
 ```
 
 Add the following to your model in `PROJECT_FOLDER/app/models/foo.js`.
-```
+```javascript
 	exports.definition = {	
 		config: {
 			//"debug": 1, 
@@ -42,7 +42,7 @@ Add the following to your model in `PROJECT_FOLDER/app/models/foo.js`.
 	}
 ```
 Create the soap controller in Alloy.js
-```
+```javascript
 // Set SOAP global objects
 Alloy.Globals.soap = {
 	client: null,
@@ -70,6 +70,14 @@ Alloy.Globals.soap = {
 	}
 };
 ```
+
+Finally in your index.js, before fetch the first collection you have to create the client
+```javascript
+Alloy.Globals.soap.create( function( ) {
+	// open window or fetch your data
+} );
+```
+
 # Changelog
 **v0.2.0**  
 init version compitable with ti-soap 0.2.0 build on Node.js SOAP 0.2.0, for from [REST API adapter](https://github.com/viezel/napp.alloy.adapter.restapi)
