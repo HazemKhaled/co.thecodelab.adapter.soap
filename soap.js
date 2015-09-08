@@ -1,9 +1,10 @@
 /**
- * Rest API Adapter for Titanium Alloy
- * @author Mads Møller
- * @version 1.1.10
- * Copyright Napp ApS
- * www.napp.dk
+ * @author Hazem Khaled <hazem.khaled@gmail.com>
+ * @author Ebrahim Abdelmoaty <e.3bmoety@gmail.com>
+ * @version 0.2.0
+ * @license http://opensource.org/licenses/MIT Free to use under MIT
+ *
+ * Fork from https://github.com/viezel/napp.alloy.adapter.restapi by Mads Møller
  */
 
 function S4() {
@@ -19,113 +20,29 @@ function InitAdapter(config) {
 }
 
 function apiCall(_options, _callback) {
-	if (Ti.Network.online) {
-		var xhr = Ti.Network.createHTTPClient({
-			timeout : _options.timeout || 7000
+	if (Ti.Network.online && Alloy.Globals.soap.session) {
+
+		_.extend(_options.data, {
+			sessionId : Alloy.Globals.soap.session
+		});
+		Ti.API.debug("magento method " + _options.soapMethod + " " + "data=" + JSON.stringify(_options.data));
+		Alloy.Globals.soap.client[_options.soapMethod](_options.data, function(err, result) {
+
+			_callback({
+				success : !err,
+				status : err || '',
+				offline : false,
+				result : result || null
+			});
 		});
 
-		xhr.onload = function() {
-			var responseJSON, success = (this.status <= 304) ? "ok" : "error", status = true, error;
-
-			// save the eTag for future reference
-			if (_options.eTagEnabled && success) {
-				setETag(_options.url, xhr.getResponseHeader('ETag'));
-			}
-
-			// we dont want to parse the JSON on a empty response
-			if (this.status != 304 && this.status != 204) {
-				// parse JSON
-				try {
-					responseJSON = JSON.parse(this.responseText);
-				} catch (e) {
-					Ti.API.error('[REST API] apiCall PARSE ERROR: ' + e.message);
-					Ti.API.error('[REST API] apiCall PARSE ERROR: ' + this.responseText);
-					status = false;
-					error = e.message;
-				}
-			}
-
-			_callback({
-				success : status,
-				status : success,
-				code : this.status,
-				data : error,
-				responseText : this.responseText || null,
-				responseJSON : responseJSON || null
-			});
-
-			cleanup();
-		};
-
-		//Handle error
-		xhr.onerror = function(e) {
-			var responseJSON, error;
-			try {
-				responseJSON = JSON.parse(this.responseText);
-			} catch (e) {
-				error = e.message;
-			}
-
-			_callback({
-				success : false,
-				status : "error",
-				code : this.status,
-				error : e.error,
-				data : error,
-				responseText : this.responseText,
-				responseJSON : responseJSON || null
-			});
-
-			Ti.API.error('[REST API] apiCall ERROR: ' + this.responseText);
-			Ti.API.error('[REST API] apiCall ERROR CODE: ' + this.status);
-			Ti.API.error('[REST API] apiCall ERROR MSG: ' + e.error);
-			Ti.API.error('[REST API] apiCall ERROR URL: ' + _options.url);
-
-			cleanup();
-		};
-		
-		//Prepare the request
-		xhr.open(_options.type, _options.url);
-
-		// headers
-		for (var header in _options.headers) {
-			// use value or function to return value
-			xhr.setRequestHeader(header, _.isFunction(_options.headers[header]) ? _options.headers[header]() : _options.headers[header]);
-		}
-
-		if (_options.beforeSend) {
-			_options.beforeSend(xhr);
-		}
-
-		if (_options.eTagEnabled) {
-			var etag = getETag(_options.url);
-			etag && xhr.setRequestHeader('IF-NONE-MATCH', etag);
-		}
-
-		if (_options.type != 'GET' && !_.isEmpty(_options.data)) {
-			xhr.send(_options.data);
-		} else {
-			xhr.send();
-		}
 	} else {
-		// we are offline
 		_callback({
 			success : false,
 			status : "offline",
 			offline : true,
 			responseText : null
 		});
-	}
-
-	/**
-	 * Clean up the request
-	 */
-	function cleanup() {
-		xhr = null;
-		_options = null;
-		_callback = null;
-		error = null;
-		responseJSON = null;
 	}
 
 }
@@ -216,8 +133,8 @@ function Sync(method, model, opts) {
 
 			apiCall(params, function(_response) {
 				if (_response.success) {
-					var data = parseJSON(DEBUG, _response, parentNode, model);
 
+					var data = parseJSON(DEBUG, _response, parentNode);
 					//Rest API should return a new model id.
 					if (data[model.idAttribute] === undefined) {
 						//if not - create one
@@ -234,54 +151,29 @@ function Sync(method, model, opts) {
 			});
 			break;
 
-		case 'read':
-			if (model.id) {
-				params.url = params.url + '/' + model.id;
-			}
-
-			if (params.search) {
-				// search mode
-				params.url = params.url + "/search/" + Ti.Network.encodeURIComponent(params.search);
-			}
-
-			if (params.urlparams) {
-				// build url with parameters
-				params.url = encodeData(params.urlparams, params.url);
-			}
-
-			if ( ! params.urlparams && params.data) {
-                // If we have set optional parameters on the request we should use it
-                // when params.urlparams fails/is empty.
-                params.url = encodeData(params.data, params.url);
-            }
-
-			if (eTagEnabled) {
-				params.eTagEnabled = true;
-			}
-
+		case 'read' :
+	
+			// send SOAP method to apiCall
+			_.extend(params, {
+				soapMethod : model.config.soapMethod
+			});
+	
 			logger(DEBUG, "read options", params);
 
 			apiCall(params, function(_response) {
 				if (_response.success) {
-					var data = parseJSON(DEBUG, _response, parentNode, model);
+					var data = parseJSON(DEBUG, _response.result, parentNode);
 					var values = [];
 
 					if (!_.isArray(data)) {
 						data = [data];
 					}
 
-					var length = 0;
-					for (var i in data) {
-						var item = {};
-						item = data[i];
-						if (item && item[model.idAttribute] === undefined) {
-							item[model.idAttribute] = guid();
-						}
-						values.push(item);
-						length++;
+					if (params.addModel) {
+						data.unshift(params.addModel);
 					}
 
-					params.success((length === 1) ? values[0] : values, _response.responseText);
+					params.success(data, JSON.stringify(_response.result));
 					model.trigger("fetch");
 				} else {
 					params.error(model, _response.responseText);
@@ -316,7 +208,7 @@ function Sync(method, model, opts) {
 
 			apiCall(params, function(_response) {
 				if (_response.success) {
-					var data = parseJSON(DEBUG, _response, parentNode, model);
+					var data = parseJSON(DEBUG, _response, parentNode);
 					params.success(data, JSON.stringify(data));
 					model.trigger("fetch");
 				} else {
@@ -345,7 +237,7 @@ function Sync(method, model, opts) {
 
 			apiCall(params, function(_response) {
 				if (_response.success) {
-					var data = parseJSON(DEBUG, _response, parentNode, model);
+					var data = parseJSON(DEBUG, _response, parentNode);
 					params.success(null, _response.responseText);
 					model.trigger("fetch");
 				} else {
@@ -372,11 +264,21 @@ function logger(DEBUG, message, data) {
 	}
 }
 
-function parseJSON(DEBUG, _response, parentNode, model) {
-	var data = _response.responseJSON;
+function parseJSON(DEBUG, _response, parentNode) {
+	var data = _response;
 	if (!_.isUndefined(parentNode)) {
-		data = _.isFunction(parentNode) ? parentNode(data, _response, model) : traverseProperties(data, parentNode);
+		data = _.isFunction(parentNode) ? parentNode(data) : traverseProperties(data, parentNode);
 	}
+
+	_.each(data, function(value, key) {
+		delete value.attributes;
+		_.each(value, function(v, k) {
+			value[k] = value[k].$value;
+
+		});
+		data[key] = value;
+	});
+
 	logger(DEBUG, "server response", _response);
 	return data;
 }
