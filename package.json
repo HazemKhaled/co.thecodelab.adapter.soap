@@ -1,10 +1,16 @@
 {
   "name": "alloy-sync-soap",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "SOAP Sync Adapter for Titanium Alloy",
   "author": {
     "name": "Hazem Khaled",
-    "email": "hazem.khaled@gmail.com"
+    "email": "hazem.khaled@gmail.com",
+    "url": "http://about.me/hazemkhaled"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HazemKhaled/co.thecodelab.adapter.soap.git"
   },
   "appc-npm": {
     "target": {
@@ -13,7 +19,8 @@
     "ignore": [
       "package.json",
       ".git",
-      "README.md"
+      "README.md",
+      ".npmignore"
     ]
   },
   "scripts": {
@@ -24,7 +31,18 @@
     "alloy-sync",
     "napp",
     "soap",
-    "crud",
-    "titanium"
-  ]
+    "titanium",
+    "titaniumsdk",
+    "titaniumifier",
+    "ti-soap",
+    "alloy",
+    "appcelerator"
+  ],
+  "dependencies": {
+    "ti-soap": "~0.2.0"
+  },
+  "homepage": "https://github.com/HazemKhaled/co.thecodelab.adapter.soap",
+  "bugs": {
+    "url": "https://github.com/HazemKhaled/co.thecodelab.adapter.soap/issues"
+  }
 }
