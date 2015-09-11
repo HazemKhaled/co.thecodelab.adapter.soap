@@ -11,9 +11,14 @@ Add the [ti-soap](http://gitt.io/component/soap) commonjs module
 gittio install soap
 ```
 
-Download [soap.js](soap.js) to `PROJECT_FOLDER/app/assets/alloy/sync/` or use NPM thanks to [appc-npm](https://www.npmjs.com/package/appc-npm):
+Download [soap.js](soap.js) to `PROJECT_FOLDER/app/assets/alloy/sync/`
+
+or
+
+use NPM thanks to [appc-npm](https://www.npmjs.com/package/appc-npm):
 
 ```
+// not working right now
 npm install alloy-sync-soap --save
 ```
 
@@ -79,7 +84,12 @@ Alloy.Globals.soap.create( function( ) {
 ```
 
 # Changelog
-**v0.2.0**  
+
+**v0.2.1**  
+Update appc-npm script (still not working)  
+Update depancies and meta in package.js
+
+**v0.2.0** 
 init version compitable with ti-soap 0.2.0 build on Node.js SOAP 0.2.0, for from [REST API adapter](https://github.com/viezel/napp.alloy.adapter.restapi)
 
 ## Authors
