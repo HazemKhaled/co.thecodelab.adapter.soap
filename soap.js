@@ -53,9 +53,6 @@ function Sync(method, model, opts) {
 	// Debug mode
 	var DEBUG = model.config.debug;
 
-	// eTag enabled
-	var eTagEnabled = model.config.eTagEnabled;
-
 	// Used for custom parsing of the response data
 	var parentNode = model.config.parentNode;
 
@@ -76,24 +73,10 @@ function Sync(method, model, opts) {
 
 	// Send our own custom headers
 	if (model.config.hasOwnProperty("headers")) {
-		for (var header in model.config.headers) {
+		var header = {};
+		for (header in model.config.headers) {
 			params.headers[header] = model.config.headers[header];
 		}
-	}
-
-	// We need to ensure that we have a base url.
-	if (!params.url) {
-		params.url = (model.config.URL || model.url());
-		if (!params.url) {
-			Ti.API.error("[REST API] ERROR: NO BASE URL");
-			return;
-		}
-	}
-
-	// Extend the provided url params with those from the model config
-	if (_.isObject(params.urlparams) || model.config.URLPARAMS) {
-        params.urlparams = params.urlparams || {};
-		_.extend(params.urlparams, _.isFunction(model.config.URLPARAMS) ? model.config.URLPARAMS() : model.config.URLPARAMS);
 	}
 
 	// For older servers, emulate JSON by encoding the request into an HTML-form.
@@ -190,18 +173,6 @@ function Sync(method, model, opts) {
 				return;
 			}
 
-			// setup the url & data
-			if (_.indexOf(params.url, "?") == -1) {
-				params.url = params.url + '/' + model.id;
-			} else {
-				var str = params.url.split("?");
-				params.url = str[0] + '/' + model.id + "?" + str[1];
-			}
-
-			if (params.urlparams) {
-				params.url = encodeData(params.urlparams, params.url);
-			}
-
 			params.data = JSON.stringify(model.toJSON());
 
 			logger(DEBUG, "update options", params);
@@ -225,13 +196,6 @@ function Sync(method, model, opts) {
 				Ti.API.error("[REST API] ERROR: MISSING MODEL ID");
 				return;
 			}
-			//params.url = params.url + '/' + model.id;
-			if (_.indexOf(params.url, "?") == -1) {
-							params.url = params.url + '/' + model.id;
-						} else {
-							var str = params.url.split("?");
-							params.url = str[0] + '/' + model.id + "?" + str[1];
-						}
 
 			logger(DEBUG, "delete options", params);
 
@@ -289,42 +253,6 @@ function traverseProperties(object, string) {
 		object = object[explodedString[i]];
 	}
 	return object;
-}
-
-function encodeData(obj, url) {
-	var str = [];
-	for (var p in obj) {
-		str.push(Ti.Network.encodeURIComponent(p) + "=" + Ti.Network.encodeURIComponent(obj[p]));
-	}
-
-	if (_.indexOf(url, "?") == -1) {
-		return url + "?" + str.join("&");
-	} else {
-		return url + "&" + str.join("&");
-	}
-}
-
-/**
- * Get the ETag for the given url
- * @param {Object} url
- */
-function getETag(url) {
-	var obj = Ti.App.Properties.getObject("NAPP_REST_ADAPTER", {});
-	var data = obj[url];
-	return data || null;
-}
-
-/**
- * Set the ETag for the given url
- * @param {Object} url
- * @param {Object} eTag
- */
-function setETag(url, eTag) {
-	if (eTag && url) {
-		var obj = Ti.App.Properties.getObject("NAPP_REST_ADAPTER", {});
-		obj[url] = eTag;
-		Ti.App.Properties.setObject("NAPP_REST_ADAPTER", obj);
-	}
 }
 
 //we need underscore
