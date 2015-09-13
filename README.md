@@ -85,6 +85,9 @@ Alloy.Globals.soap.create( function( ) {
 
 # Changelog
 
+**v0.2.2**  
+Remove url handling code to fix bug, not needed for SOAP 
+
 **v0.2.1**  
 Update appc-npm script (still not working)  
 Update depancies and meta in package.js
