@@ -2,7 +2,7 @@ SOAP adapter for Appcelerator Titanium Alloy
 ==========================
 Finally you have full support of SOAP client into Titanium, depend on the power of [SOAP Node.js package](https://www.npmjs.com/package/soap).
 
-This adaptor forked from [@Viezel Rest adapter](https://github.com/viezel/napp.alloy.adapter.restapi).
+This adapter forked from [@Viezel Rest adapter](https://github.com/viezel/napp.alloy.adapter.restapi).
 
 ## How To Use
 
@@ -97,17 +97,17 @@ init version compitable with ti-soap 0.2.0 build on Node.js SOAP 0.2.0, for from
 
 ## Authors
 
-1. [Mads Møller](https://github.com/viezel) - Original adaptor that we forked from
+1. [Mads Møller](https://github.com/viezel) - Original adapter that we forked from
 2. [Pier Paolo Ramon](https://github.com/yuchi) - Titaniumify the Node.js [SOAP](https://www.npmjs.com/package/soap) package to Titanium module
-3. [Hazem Khaled](https://github.com/hazemkhaled) - Code into this SOAP adaptor
-4. [Ebrahim 3bmo3ty](https://github.com/e3bmo3ty) - Code into this SOAP adaptor
+3. [Hazem Khaled](https://github.com/hazemkhaled) - Code this adapter
+4. [Ebrahim 3bmo3ty](https://github.com/e3bmo3ty) - Code this adapter
 
 
 ## License
 
     The MIT License (MIT)
     
-    Copyright (c) 2010-2013 Mads Møller
+    Copyright (c) 2010-2015
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
